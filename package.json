@@ -44,6 +44,9 @@
     "patchedDependencies": {
       "@fluentui/react-provider": "patches/@fluentui__react-provider.patch",
       "@griffel/core": "patches/@griffel__core.patch"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
