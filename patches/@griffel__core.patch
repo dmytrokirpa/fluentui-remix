@@ -1,0 +1,26 @@
+diff --git a/renderer/getStyleSheetForBucket.cjs.js b/renderer/getStyleSheetForBucket.cjs.js
+index 1358d8263b08c921629da2fcf654203ffaaea6a3..58b3818d3ed2d1146f17bd145b1ac0ae11c04c3e 100644
+--- a/renderer/getStyleSheetForBucket.cjs.js
++++ b/renderer/getStyleSheetForBucket.cjs.js
+@@ -66,7 +66,7 @@ function getStyleSheetForBucket(bucketName, targetDocument, insertionPoint, rend
+       media
+     }));
+     renderer.stylesheets[stylesheetKey] = stylesheet;
+-    if (targetDocument && tag) {
++    if (targetDocument?.head && tag) {
+       targetDocument.head.insertBefore(tag, findInsertionPoint(targetDocument, insertionPoint, bucketName, renderer, metadata));
+     }
+   }
+diff --git a/renderer/getStyleSheetForBucket.esm.js b/renderer/getStyleSheetForBucket.esm.js
+index d9933206e2a1ad7449fa3063213861fe53ffa775..118c178a1386d4d472e8bb66c65d0d3d28b609e9 100644
+--- a/renderer/getStyleSheetForBucket.esm.js
++++ b/renderer/getStyleSheetForBucket.esm.js
+@@ -64,7 +64,7 @@ function getStyleSheetForBucket(bucketName, targetDocument, insertionPoint, rend
+       media
+     }));
+     renderer.stylesheets[stylesheetKey] = stylesheet;
+-    if (targetDocument && tag) {
++    if (targetDocument?.head && tag) {
+       targetDocument.head.insertBefore(tag, findInsertionPoint(targetDocument, insertionPoint, bucketName, renderer, metadata));
+     }
+   }

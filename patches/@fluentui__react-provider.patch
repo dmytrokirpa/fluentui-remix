@@ -1,0 +1,97 @@
+diff --git a/lib/components/FluentProvider/useFluentProviderThemeStyleTag.js b/lib/components/FluentProvider/useFluentProviderThemeStyleTag.js
+index 115fb66149540f5c5363c58aa0b14032fff00baa..c7c9c736862ca5895fe51cb8845a6c26160497b8 100644
+--- a/lib/components/FluentProvider/useFluentProviderThemeStyleTag.js
++++ b/lib/components/FluentProvider/useFluentProviderThemeStyleTag.js
+@@ -2,16 +2,19 @@ import { useId, useIsomorphicLayoutEffect } from '@fluentui/react-utilities';
+ import * as React from 'react';
+ import { createCSSRuleFromTheme } from './createCSSRuleFromTheme';
+ import { fluentProviderClassNames } from './useFluentProviderStyles.styles';
++import { useRenderer_unstable } from '@griffel/react';
++
+ // String concatenation is used to prevent bundlers to complain with older versions of React
+ const useInsertionEffect = React['useInsertion' + 'Effect'] ? React['useInsertion' + 'Effect'] : useIsomorphicLayoutEffect;
+ const createStyleTag = (target, elementAttributes)=>{
+-    if (!target) {
++    if (!target?.head) {
+         return undefined;
+     }
+     const tag = target.createElement('style');
+     Object.keys(elementAttributes).forEach((attrName)=>{
+         tag.setAttribute(attrName, elementAttributes[attrName]);
+     });
++
+     target.head.appendChild(tag);
+     return tag;
+ };
+@@ -34,6 +37,7 @@ const insertSheet = (tag, rule)=>{
+  */ export const useFluentProviderThemeStyleTag = (options)=>{
+     'use no memo';
+     const { targetDocument, theme, rendererAttributes } = options;
++    const shouldInsertStyleRef = React.useRef(false);
+     const styleTag = React.useRef();
+     const styleTagId = useId(fluentProviderClassNames.root);
+     const styleElementAttributes = rendererAttributes;
+@@ -41,6 +45,7 @@ const insertSheet = (tag, rule)=>{
+         theme,
+         styleTagId
+     ]);
++    const renderer = useRenderer_unstable();
+     if (process.env.NODE_ENV !== 'production') {
+         // eslint-disable-next-line react-hooks/rules-of-hooks
+         React.useMemo(()=>{
+@@ -81,6 +86,10 @@ const insertSheet = (tag, rule)=>{
+             });
+             if (styleTag.current) {
+                 insertSheet(styleTag.current, rule);
++            } else {
++                // Styles were not inserted into DOM because of the hydration error,
++                // so we need to insert them later
++                shouldInsertStyleRef.current = true;
+             }
+         }
+         return ()=>{
+@@ -93,6 +102,44 @@ const insertSheet = (tag, rule)=>{
+         rule,
+         styleElementAttributes
+     ]);
++
++
++    // This is a workaround for the hydration error that occurs when the style tag
++    // is created during SSR and then removed during the client render
++    useIsomorphicLayoutEffect(()=>{
++        if (!shouldInsertStyleRef.current) {
++            return
++        }
++        
++        // If the style tag was not created during SSR, we need to insert the styles
++        if (!styleTag.current) {
++            styleTag.current = createStyleTag(targetDocument, {
++                ...styleElementAttributes,
++                id: styleTagId
++            });
++            insertSheet(styleTag.current, rule);
++        }
++
++
++        const cache = renderer.insertionCache;
++
++        // Wipe out the renderer cache
++        renderer.insertionCache = {}
++        renderer.stylesheets = {}
++        
++        // Insert the styles into the renderer
++        renderer.insertCSSRules(
++            Object.entries(cache).reduce((acc, [key, value]) => {
++            acc[value] = acc[value] || []
++            acc[value].push(key)
++        
++            return acc
++        }, {}))
++
++        // Prevent the style tag from being inserted again
++        shouldInsertStyleRef.current = false;
++    }, []);
++
+     return {
+         styleTagId,
+         rule

@@ -39,5 +39,11 @@
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "@fluentui/react-provider": "patches/@fluentui__react-provider.patch",
+      "@griffel/core": "patches/@griffel__core.patch"
+    }
   }
 }

@@ -4,15 +4,24 @@
  * For more information, see https://remix.run/file-conventions/entry.client
  */
 
-import { RemixBrowser } from '@remix-run/react';
-import { startTransition, StrictMode } from 'react';
-import { hydrateRoot } from 'react-dom/client';
+import {
+  RendererProvider,
+  createDOMRenderer,
+  SSRProvider,
+} from "@fluentui/react-components";
+import { RemixBrowser } from "@remix-run/react";
+import { startTransition, StrictMode } from "react";
+import { hydrateRoot } from "react-dom/client";
 
 startTransition(() => {
   hydrateRoot(
     document,
     <StrictMode>
-      <RemixBrowser />
+      <RendererProvider renderer={createDOMRenderer()}>
+        <SSRProvider>
+          <RemixBrowser />
+        </SSRProvider>
+      </RendererProvider>
     </StrictMode>
   );
 });
