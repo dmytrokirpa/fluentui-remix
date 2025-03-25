@@ -7,7 +7,8 @@
     "dev": "remix vite:dev",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "remix-serve ./build/server/index.js",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@fluentui/react-components": "^9.56.3",
@@ -32,6 +33,7 @@
     "eslint-plugin-jsx-a11y": "^6.7.1",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "patch-package": "^8.0.0",
     "typescript": "^5.1.6",
     "vite": "^5.1.0",
     "vite-plugin-cjs-interop": "^2.1.6",
@@ -39,15 +41,5 @@
   },
   "engines": {
     "node": ">=20.0.0"
-  },
-  "pnpm": {
-    "patchedDependencies": {
-      "@fluentui/react-provider": "patches/@fluentui__react-provider.patch",
-      "@griffel/core": "patches/@griffel__core.patch"
-    },
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
-  },
-  "packageManager": "pnpm@10.6.2"
+  }
 }

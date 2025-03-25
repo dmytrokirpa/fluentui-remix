@@ -1,0 +1,59 @@
+diff --git a/node_modules/@fluentui/react-provider/lib/components/FluentProvider/useFluentProviderThemeStyleTag.js b/node_modules/@fluentui/react-provider/lib/components/FluentProvider/useFluentProviderThemeStyleTag.js
+index 115fb66..2642a11 100644
+--- a/node_modules/@fluentui/react-provider/lib/components/FluentProvider/useFluentProviderThemeStyleTag.js
++++ b/node_modules/@fluentui/react-provider/lib/components/FluentProvider/useFluentProviderThemeStyleTag.js
+@@ -1,3 +1,4 @@
++import { useRenderer_unstable } from '@griffel/react';
+ import { useId, useIsomorphicLayoutEffect } from '@fluentui/react-utilities';
+ import * as React from 'react';
+ import { createCSSRuleFromTheme } from './createCSSRuleFromTheme';
+@@ -5,7 +6,7 @@ import { fluentProviderClassNames } from './useFluentProviderStyles.styles';
+ // String concatenation is used to prevent bundlers to complain with older versions of React
+ const useInsertionEffect = React['useInsertion' + 'Effect'] ? React['useInsertion' + 'Effect'] : useIsomorphicLayoutEffect;
+ const createStyleTag = (target, elementAttributes)=>{
+-    if (!target) {
++    if (!target?.head) {
+         return undefined;
+     }
+     const tag = target.createElement('style');
+@@ -93,6 +94,40 @@ const insertSheet = (tag, rule)=>{
+         rule,
+         styleElementAttributes
+     ]);
++
++    const renderer = useRenderer_unstable();
++
++    // This is a workaround for the hydration error that occurs when the style tag
++    // is created during SSR and then removed during the client render
++    useIsomorphicLayoutEffect(() => {
++        if (styleTag.current) {
++            return
++        }
++          
++        const cache = renderer.insertionCache;
++
++        // wipe the renderer cache
++        renderer.insertionCache = {}
++        renderer.stylesheets = {}
++        
++        // Insert the styles into the renderer
++        renderer.insertCSSRules(
++            Object.entries(cache).reduce((acc, [key, value]) => {
++            acc[value] = acc[value] || []
++            acc[value].push(key)
++        
++            return acc
++        }, {}))
++
++        styleTag.current = createStyleTag(targetDocument, {
++            ...styleElementAttributes,
++            id: styleTagId
++        });
++        if (styleTag.current) {
++            insertSheet(styleTag.current, rule);
++        }
++    }, []);
++
+     return {
+         styleTagId,
+         rule
